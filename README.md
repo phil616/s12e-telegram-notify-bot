@@ -84,6 +84,50 @@
 
 推送到 `main` 分支时将自动触发部署。
 
+## GitHub Actions 集成指南
+
+你可以将此 Webhook 轻松集成到 GitHub Actions 工作流中，以便在构建或部署完成后接收包含 commit 信息和仓库链接的通知。
+
+### 1. 配置 GitHub Secrets
+
+在你的 GitHub 仓库中，添加以下 Secret：
+
+*   `TG_WEBHOOK_URL`: 部署好的 Worker URL，例如 `https://your-bot.workers.dev/push`
+*   `TG_WEBHOOK_SECRET`: 你的 `ENV_PUSH_SECRET`
+
+### 2. 添加 Workflow 步骤
+
+在你的 `.github/workflows/xxx.yml` 文件中，添加以下步骤。这里使用 `curlimages/curl` 镜像来发送请求，并利用 GitHub 提供的上下文变量来构造丰富的消息内容。
+
+```yaml
+      - name: Send Telegram Notification
+        if: always() # 无论前面的步骤成功与否都运行
+        run: |
+          # 构造消息内容
+          REPO_NAME="${{ github.repository }}"
+          COMMIT_SHA="${{ github.sha }}"
+          COMMIT_URL="https://github.com/${{ github.repository }}/commit/${{ github.sha }}"
+          WORKFLOW_URL="https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+          STATUS="${{ job.status }}"
+          
+          MESSAGE="**GitHub Actions Notification**
+          
+          **Repository:** ${REPO_NAME}
+          **Status:** ${STATUS}
+          **Workflow:** [View Run](${WORKFLOW_URL})
+          **Commit:** [${COMMIT_SHA::7}](${COMMIT_URL})
+          
+          _Powered by DreamReflex Bot_"
+          
+          # 发送请求
+          curl -X POST "${{ secrets.TG_WEBHOOK_URL }}" \
+            -H "x-webhook-secret: ${{ secrets.TG_WEBHOOK_SECRET }}" \
+            -H "Content-Type: application/json" \
+            -d "$(jq -n --arg msg "$MESSAGE" '{message: $msg}')"
+```
+
+> **注意**：上述脚本使用了 `jq` 来安全地生成 JSON，避免特殊字符导致格式错误。GitHub Actions 的 `ubuntu-latest` 环境预装了 `jq`。
+
 ## API 使用说明
 
 ### 发送消息
