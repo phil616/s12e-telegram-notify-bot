@@ -1,0 +1,12 @@
+# 这是一个示例文件。
+# 请将此文件复制为 .dev.vars 并填入你的真实密钥。
+# .dev.vars 文件包含敏感信息，请勿提交到版本控制系统。
+
+# Telegram Bot Token (从 @BotFather 获取)
+ENV_BOT_TOKEN=123456789:ABCDefGhiJklMnoPqrStuVwxYz
+
+# 你的 Telegram Chat ID (可以通过 @userinfobot 获取)
+ENV_CHAT_ID=12345678
+
+# 自定义的 Webhook 推送密钥 (用于验证请求)
+ENV_PUSH_SECRET=your-secret-password-here
